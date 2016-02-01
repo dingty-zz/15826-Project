@@ -1,0 +1,21 @@
+Author: Christos Faloutsos, April 1996
+
+Implements IFS method
+[Barnsley & Sloan, BYTE, Jan. 1988]
+
+Do
+    make
+to see two demos: the sierpinski triangle and the fern.
+
+TO INSTALL:
+    make install
+will create the two executables 'fern' and 'sierpinski',
+each of which generates 5000 points of the respective fractal
+
+
+USAGE
+    fern
+or
+    sierpinksi
+without any flags.
+

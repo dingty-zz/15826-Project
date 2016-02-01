@@ -1,0 +1,30 @@
+***********************************************************
+* Authors: by Nijith Jacob, Neil Shah, Christos Faloutsos
+* Last modified: Jan. 2016
+***********************************************************
+
+Notes:
+
+The packaged bash script can be used to setup a functional installation of all the components necessary to run the graphminer code (assuming Python is installed by default, if not - please install it).  The installed components are:
+
+- postgres (with necessary configuration modifications)
+- python-psycopg2 module
+- graphminer 
+
+---------------------------
+
+Instructions:
+
+1) ONLY run this in a **bash** shell.  If you are using a system which by default is on csh/tcsh (check your shell by typing 'echo $SHELL' at terminal), then change to bash before running this code.  
+
+FYI: many Andrew systems are on csh/tcsh so you will need to remember to change shells.  You can change to bash simply by typing 'bash' at terminal.  There are several environment variables I set in this code and append to the standard .bashrc file for you to use while working on the project so you do not have to set them every time.  But, .bashrc is only executed in the bash shell, so you must either remember to change shell to bash upon each login to a machine with another default shell, or you can modify the .cshrc or .tcshrc file with a line to start bash automatically so that you don't forget. 
+
+2) Modify the PREFIX variable setting at the start of the setup-proj.bash file to point to the directory in which you want to install all the components (postgres, python-psycopg2, graphminer code).  
+2.1) CREATE the directory BEFORE using the code.  
+2.2) Also modify the POSTGRESPORT variable to the port specified in the ghc machine id/port column in your Blackboard gradebook.  This is important: should you not do this, you may conflict with another person's postgres install on the same machine.
+
+3) Type 'source setup-proj.bash' in your terminal to begin the installation process.  The code should install the necessary components in the directory you specified and in the end run the example provided in the graphminer code to assure functionality.  IMPORTANT: If you run './setup-proj.bash' the environment variable exports will NOT persist to your shell after execution and you will have to re-connect to the machine to use graphminer again.
+
+4) For future uses (after signing off of the system), you can check to see if postgres is running with 'ps aux | grep postgres' in terminal.  If postgres is not running, you can start it from the PREFIX directory you specified using './postgres/bin/postgres -p $POSTGRESPORT -D postgres/data/ >& logfile &'.  Remember to use bash or environment variables will not be set properly by default.
+
+5) Remember to SHUT DOWN postgres (pg_ctl -D yourDBDirectory stop )
