@@ -77,6 +77,11 @@ def gm_save_tables (dest_dir, belief):
     gm_sql_save_table_to_file(db_conn, GM_EIG_VECTORS, "row_id, col_id, value", \
                                   os.path.join(dest_dir,"eigvec.csv"), ",");                               
                                   
+    gm_sql_save_table_to_file(db_conn, GM_CORENESS, "node_id, coreness", \
+                                  os.path.join(dest_dir,"coreness.csv"), ",");
+    
+    gm_sql_save_table_to_file(db_conn, GM_DEGENERACY, "degeneracy", \
+                                  os.path.join(dest_dir,"degeneracy.csv"), ",");
 
 #Project Tasks
 
@@ -769,6 +774,20 @@ def gm_eigen_triangle_count():
     
     cur.close()
 
+# Task 8: Compute Degeneracy
+# ------------------------------------------------------------------------- #
+def gm_degeneracy():
+    # gm_node_degrees()
+    cur = db_conn.cursor()
+    print "Computing graph degeneracy"
+    gm_sql_table_drop_create(db_conn, GM_CORENESS, "node_id integer, coreness integer")
+    gm_sql_table_drop_create(db_conn, GM_DEGENERACY, "degeneracy integer")
+
+    # SQL queries go here
+
+
+    db_conn.commit()                        
+    cur.close()
 
 # Innovative Task : Anomaly Detection for unidrected graphs
 def gm_anomaly_detection():
@@ -869,7 +888,7 @@ def main():
         if (args.belief_file):
             gm_belief_propagation(args.belief_file, args.delimiter, args.undirected)
         
-        
+        gm_degeneracy()
         gm_eigen_triangle_count()
         #gm_naive_triangle_count()
 
