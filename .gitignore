@@ -1,0 +1,4 @@
+*.pyc
+postgres
+logfile
+graphminer/output/*.csv
