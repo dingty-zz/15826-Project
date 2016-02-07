@@ -2,8 +2,8 @@
 # last modified: by christos faloutsos, Jan. 2016
 ####
 
-PREFIX=826-proj    # you may leave it as-is - but created such a dir. first
-POSTGRESPORT=5432  # you SHOULD change it according to your port# on Blackboard
+PREFIX=~/private/15826-Project    # you may leave it as-is - but created such a dir. first
+POSTGRESPORT=15081  # you SHOULD change it according to your port# on Blackboard
 
 cd $PREFIX
 PREFIX=`pwd`
