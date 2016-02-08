@@ -791,15 +791,17 @@ def gm_degeneracy():
     while True:
         cur.execute("insert into %s (node_id, coreness)" % GM_CORENESS +
     "select node_id, in_degree from gm_temp_degress where in_degree = %s;" % k)
+        db_conn.commit()
         cur.execute("delete from gm_temp where src_id in "+
 "(select src_id from gm_temp, %s where gm_temp.src_id = %s.node_id and %s.coreness =%s) " % (GM_CORENESS, GM_CORENESS, GM_CORENESS,k) +
 "or dst_id in (select dst_id from gm_temp, %s where gm_temp.dst_id = %s.node_id and %s.coreness =%s);" % (GM_CORENESS, GM_CORENESS, GM_CORENESS,k))
-        
+        db_conn.commit()
         cur.execute("select * from gm_temp")
-        if cur.fetchone() == 0:
+        db_conn.commit()
+        if cur.rowcount == 0:
             break
         cur.execute("delete from gm_temp_degress;")
-        
+        db_conn.commit()
         cur.execute("insert into gm_temp_degress" + 
                              " SELECT node_id, SUM(in_degree) \"in_degree\", SUM(out_degree) \"out_degree\" FROM " +
                              " (SELECT dst_id \"node_id\", count(*) \"in_degree\", \
@@ -810,9 +812,11 @@ def gm_degeneracy():
                                count(*) \"out_degree\" FROM gm_temp"  +
                              " GROUP BY src_id) \"TAB\" " +
                              " GROUP BY node_id")
+        db_conn.commit()
         k += 1
-    print k
-    cur.execute("insert into (degeneracy) values %s;", k)
+    print ("Degeneracy: %s" % k)
+    cur.execute("insert into %s (degeneracy) values (%s);" % (GM_DEGENERACY, k))
+    db_conn.commit()
     cur.execute("drop view gm_temp;")
     cur.execute("drop view gm_temp_degress;")
 
