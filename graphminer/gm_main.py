@@ -782,11 +782,11 @@ def gm_degeneracy():
     print "Computing graph degeneracy"
     gm_sql_table_drop_create(db_conn, GM_CORENESS, "node_id integer, coreness integer")
     gm_sql_table_drop_create(db_conn, GM_DEGENERACY, "degeneracy integer")
-
+     
     # SQL queries go here
     cur.execute("create view gm_temp as select * from %s;" % GM_TABLE_UNDIRECT)
     cur.execute("create view gm_temp_degress as select node_id, in_degree, out_degree from %s;" % GM_NODE_DEGREES)
-
+    db_conn.commit()
     k = 1
     while True:
         cur.execute("insert into %s (node_id, coreness)" % GM_CORENESS +
@@ -796,7 +796,7 @@ def gm_degeneracy():
 "or dst_id in (select dst_id from gm_temp, %s where gm_temp.dst_id = %s.node_id and %s.coreness =%s);" % (GM_CORENESS, GM_CORENESS, GM_CORENESS,k))
         
         cur.execute("select * from gm_temp")
-        if cursor.fetchone() == 0:
+        if cur.fetchone() == 0:
             break
         cur.execute("delete from gm_temp_degress;")
         
