@@ -51,5 +51,7 @@ gm_param_bp_thres = 0.01              # stopping threshold
 # anomaly detection
 GM_EGONET = "GM_EGONET"
 
-
+# graph degeneracy
+GM_CORENESS = "GM_CORENESS"
+GM_DEGENERACY = "GM_DEGENERACY"
 

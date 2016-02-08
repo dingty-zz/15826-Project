@@ -47,35 +47,35 @@ def gm_create_node_table ():
     
 def gm_save_tables (dest_dir, belief):
     print "Saving tables..."
-    gm_sql_save_table_to_file(db_conn, GM_DEGREE_DISTRIBUTION, "degree, count", \
-                                  os.path.join(dest_dir,"degreedist.csv"), ",");
-    gm_sql_save_table_to_file(db_conn, GM_INDEGREE_DISTRIBUTION, "degree, count", \
-                                  os.path.join(dest_dir,"indegreedist.csv"), ",");
-    gm_sql_save_table_to_file(db_conn, GM_OUTDEGREE_DISTRIBUTION, "degree, count", \
-                                  os.path.join(dest_dir,"outdegreedist.csv"), ",");
+    # gm_sql_save_table_to_file(db_conn, GM_DEGREE_DISTRIBUTION, "degree, count", \
+    #                               os.path.join(dest_dir,"degreedist.csv"), ",");
+    # gm_sql_save_table_to_file(db_conn, GM_INDEGREE_DISTRIBUTION, "degree, count", \
+    #                               os.path.join(dest_dir,"indegreedist.csv"), ",");
+    # gm_sql_save_table_to_file(db_conn, GM_OUTDEGREE_DISTRIBUTION, "degree, count", \
+    #                               os.path.join(dest_dir,"outdegreedist.csv"), ",");
 
-    gm_sql_save_table_to_file(db_conn, GM_NODE_DEGREES, "node_id, in_degree, out_degree", \
-                                  os.path.join(dest_dir,"degree.csv"), ",");
+    # gm_sql_save_table_to_file(db_conn, GM_NODE_DEGREES, "node_id, in_degree, out_degree", \
+    #                               os.path.join(dest_dir,"degree.csv"), ",");
 
-    gm_sql_save_table_to_file(db_conn, GM_PAGERANK, "node_id, page_rank", \
-                                  os.path.join(dest_dir,"pagerank.csv"), ",");
+    # gm_sql_save_table_to_file(db_conn, GM_PAGERANK, "node_id, page_rank", \
+    #                               os.path.join(dest_dir,"pagerank.csv"), ",");
                                   
 
-    gm_sql_save_table_to_file(db_conn, GM_CON_COMP, "node_id, component_id", \
-                                  os.path.join(dest_dir,"conncomp.csv"), ",");                               
+    # gm_sql_save_table_to_file(db_conn, GM_CON_COMP, "node_id, component_id", \
+    #                               os.path.join(dest_dir,"conncomp.csv"), ",");                               
 
-    gm_sql_save_table_to_file(db_conn, GM_RADIUS, "node_id, radius", \
-                                  os.path.join(dest_dir,"radius.csv"), ",");         
+    # gm_sql_save_table_to_file(db_conn, GM_RADIUS, "node_id, radius", \
+    #                               os.path.join(dest_dir,"radius.csv"), ",");         
                         
-    if (belief):
-         gm_sql_save_table_to_file(db_conn, GM_BELIEF, "node_id, belief", \
-                                  os.path.join(dest_dir,"belief.csv"), ",");     
+    # if (belief):
+    #      gm_sql_save_table_to_file(db_conn, GM_BELIEF, "node_id, belief", \
+    #                               os.path.join(dest_dir,"belief.csv"), ",");     
 
-    gm_sql_save_table_to_file(db_conn, GM_EIG_VALUES, "id, value", \
-                                  os.path.join(dest_dir,"eigval.csv"), ",");                                 
+    # gm_sql_save_table_to_file(db_conn, GM_EIG_VALUES, "id, value", \
+    #                               os.path.join(dest_dir,"eigval.csv"), ",");                                 
                                   
-    gm_sql_save_table_to_file(db_conn, GM_EIG_VECTORS, "row_id, col_id, value", \
-                                  os.path.join(dest_dir,"eigvec.csv"), ",");                               
+    # gm_sql_save_table_to_file(db_conn, GM_EIG_VECTORS, "row_id, col_id, value", \
+    #                               os.path.join(dest_dir,"eigvec.csv"), ",");                               
                                   
     gm_sql_save_table_to_file(db_conn, GM_CORENESS, "node_id, coreness", \
                                   os.path.join(dest_dir,"coreness.csv"), ",");
@@ -777,14 +777,44 @@ def gm_eigen_triangle_count():
 # Task 8: Compute Degeneracy
 # ------------------------------------------------------------------------- #
 def gm_degeneracy():
-    # gm_node_degrees()
+    gm_node_degrees()
     cur = db_conn.cursor()
     print "Computing graph degeneracy"
     gm_sql_table_drop_create(db_conn, GM_CORENESS, "node_id integer, coreness integer")
     gm_sql_table_drop_create(db_conn, GM_DEGENERACY, "degeneracy integer")
 
     # SQL queries go here
+    cur.execute("create view gm_temp as select * from %s;" % GM_TABLE_UNDIRECT)
+    cur.execute("create view gm_temp_degress as select node_id, in_degree, out_degree from %s;" % GM_NODE_DEGREES)
 
+    k = 1
+    while True:
+        cur.execute("insert into %s (node_id, coreness)" % GM_CORENESS +
+    "select node_id, in_degree from gm_temp_degress where in_degree = %s;" % k)
+        cur.execute("delete from gm_temp where src_id in "+
+"(select src_id from gm_temp, %s where gm_temp.src_id = %s.node_id and %s.coreness =%s) " % (GM_CORENESS, GM_CORENESS, GM_CORENESS,k) +
+"or dst_id in (select dst_id from gm_temp, %s where gm_temp.dst_id = %s.node_id and %s.coreness =%s);" % (GM_CORENESS, GM_CORENESS, GM_CORENESS,k))
+        
+        cur.execute("select * from gm_temp")
+        if cursor.fetchone() == 0:
+            break
+        cur.execute("delete from gm_temp_degress;")
+        
+        cur.execute("insert into gm_temp_degress" + 
+                             " SELECT node_id, SUM(in_degree) \"in_degree\", SUM(out_degree) \"out_degree\" FROM " +
+                             " (SELECT dst_id \"node_id\", count(*) \"in_degree\", \
+                               0 \"out_degree\" FROM gm_temp" +
+                             " GROUP BY dst_id" +
+                             " UNION ALL" +
+                             " SELECT src_id \"node_id\", 0 \"in_degree\", \
+                               count(*) \"out_degree\" FROM gm_temp"  +
+                             " GROUP BY src_id) \"TAB\" " +
+                             " GROUP BY node_id")
+        k += 1
+    print k
+    cur.execute("insert into (degeneracy) values %s;", k)
+    cur.execute("drop view gm_temp;")
+    cur.execute("drop view gm_temp_degress;")
 
     db_conn.commit()                        
     cur.close()
@@ -876,20 +906,20 @@ def main():
         cur.execute("SELECT count(*) from %s" % GM_NODES)
         num_nodes = cur.fetchone()[0]  
         
-        gm_node_degrees()
+        # gm_node_degrees()
         
-        # Tasks
-        gm_degree_distribution(args.undirected)                 # Degree distribution
+        # # Tasks
+        # gm_degree_distribution(args.undirected)                 # Degree distribution
         
-        gm_pagerank(num_nodes)                                  # Pagerank
-        gm_connected_components(num_nodes)                      # Connected components
-        gm_eigen(gm_param_eig_max_iter, num_nodes, gm_param_eig_thres1, gm_param_eig_thres2)    
-        gm_all_radius(num_nodes)     
-        if (args.belief_file):
-            gm_belief_propagation(args.belief_file, args.delimiter, args.undirected)
+        # gm_pagerank(num_nodes)                                  # Pagerank
+        # gm_connected_components(num_nodes)                      # Connected components
+        # gm_eigen(gm_param_eig_max_iter, num_nodes, gm_param_eig_thres1, gm_param_eig_thres2)    
+        # gm_all_radius(num_nodes)     
+        # if (args.belief_file):
+        #     gm_belief_propagation(args.belief_file, args.delimiter, args.undirected)
         
         gm_degeneracy()
-        gm_eigen_triangle_count()
+        # gm_eigen_triangle_count()
         #gm_naive_triangle_count()
 
         # Save tables to disk
