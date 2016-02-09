@@ -787,8 +787,12 @@ def gm_degeneracy():
     cur.execute("create view gm_temp as select * from %s;" % GM_TABLE_UNDIRECT)
     cur.execute("create view gm_temp_degress as select node_id, in_degree, out_degree from %s;" % GM_NODE_DEGREES)
     db_conn.commit()
-    k = 1
+    k = 0
     while True:
+    	cur.execute("select min(in_degree) from gm_temp_degress;")
+    	db_conn.commit()
+    	k = cur.fetchone()[0]
+    	print k
         cur.execute("insert into %s (node_id, coreness)" % GM_CORENESS +
     "select node_id, in_degree from gm_temp_degress where in_degree = %s;" % k)
         db_conn.commit()
@@ -813,7 +817,10 @@ def gm_degeneracy():
                              " GROUP BY src_id) \"TAB\" " +
                              " GROUP BY node_id")
         db_conn.commit()
-        k += 1
+
+    cur.execute("select max(coreness) from %s;" % GM_CORENESS)
+    db_conn.commit()
+    k = cur.fetchone()[0]
     print ("Degeneracy: %s" % k)
     cur.execute("insert into %s (degeneracy) values (%s);" % (GM_DEGENERACY, k))
     db_conn.commit()
